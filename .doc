@@ -1,0 +1,4 @@
+MONGO_URI = mongodb+srv://ben:ben@cluster0.mshsgee.mongodb.net/membership-app?retryWrites=true&w=majority
+PORT = 5000
+JWT_SECRET = membership-app
+SEND_GRID_API_KEY = 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
