@@ -4,19 +4,26 @@ import expressAsyncHandler from "express-async-handler";
 import bcrypt from "bcryptjs";
 import { generateToken, isLogged } from "../utils.js";
 import nodemailer from "nodemailer";
-import sendgridTransport from "nodemailer-sendgrid-transport";
+// import sendgridTransport from "nodemailer-sendgrid-transport";
 import crypto from "crypto";
 
 const UserRouter = express.Router();
 
-const transporter = nodemailer.createTransport(
-    sendgridTransport({
-        auth: {
-            api_key:
-                process.env.SEND_GRID_API_KEY,
-        },
-    })
-);
+// const transporter = nodemailer.createTransport(
+//     sendgridTransport({
+//         auth: {
+//             api_key: process.env.SEND_GRID_API_KEY,
+//         },
+//     })
+// );
+
+const transporter = nodemailer.createTransport({
+    service: "hotmail",
+    auth: {
+        user: "funlandprizes@hotmail.com",
+        pass: "nivsuvjmcchpkdau"
+    }
+});
 
 UserRouter.get(
     "/",
@@ -76,7 +83,7 @@ UserRouter.post(
         });
         transporter.sendMail({
             to: createdUser.email,
-            from: "manishmulchandani01@gmail.com",
+            from: "funlandprizes@hotmail.com",
             subject: "Registration Success",
             html: "<h1>Welcome to Membership App</h1>",
         });
@@ -125,7 +132,7 @@ UserRouter.post(
                 if (updatedUser) {
                     transporter.sendMail({
                         to: user.email,
-                        from: "manishmulchandani01@gmail.com",
+                        from: "funlandprizes@hotmail.com",
                         subject: "Reset password",
                         html:
                             "<h3>Hi " +
@@ -154,7 +161,7 @@ UserRouter.post(
             user.password = bcrypt.hashSync(req.body.password, 8);
             user.resetToken = undefined;
             user.expireToken = undefined;
-            const updatedUser = await user.save();
+            await user.save();
             res.send("Password change success");
         } else {
             res.status(404).send({ message: "Could not find token" });
