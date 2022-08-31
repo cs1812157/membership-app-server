@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import { generateToken, isLogged } from "../utils.js";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
+import { baseurl } from "../config/config.js";
 
 const UserRouter = express.Router();
 
@@ -16,13 +17,13 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-// UserRouter.get(
-//     "/",
-//     expressAsyncHandler(async (req, res) => {
-//         const users = await User.find({});
-//         res.send(users);
-//     })
-// );
+UserRouter.get(
+    "/",
+    expressAsyncHandler(async (req, res) => {
+        const users = await User.find({});
+        res.send(users);
+    })
+);
 
 // UserRouter.get(
 //     "/:id",
@@ -86,12 +87,11 @@ UserRouter.post(
                             from: "manishmulchandani01@hotmail.com",
                             subject:
                                 "Registration successfull | Account verification",
-                            html:
-                                "<h3>Hi " +
+                            html: `<h3>Hi " +
                                 user.name +
-                                ',</h3><p>Your account has been successfully registered in our database.<br>Click <a href="http://localhost:3000/verify-account/' +
+                                ',</h3><p>Your account has been successfully registered in our database.<br>Click <a href="${baseurl}/verify-account/' +
                                 registerToken +
-                                '">here</a> to verify your account (This link will expire in 30 minutes)</p>',
+                                '">here</a> to verify your account (This link will expire in 30 minutes)</p>`,
                         });
                         res.send(
                             "Verification link has been sent to your email"
@@ -107,12 +107,11 @@ UserRouter.post(
                         from: "manishmulchandani01@hotmail.com",
                         subject:
                             "Registration successfull | Account verification",
-                        html:
-                            "<h3>Hi " +
+                        html: `<h3>Hi " +
                             newUser.name +
-                            ',</h3><p>Your account has been successfully registered in our database.<br>Click <a href="http://localhost:3000/verify-account/' +
+                            ',</h3><p>Your account has been successfully registered in our database.<br>Click <a href="${baseurl}/verify-account/' +
                             registerToken +
-                            '">here</a> to verify your account (This link will expire in 30 minutes)</p>',
+                            '">here</a> to verify your account (This link will expire in 30 minutes)</p>`,
                     });
                     res.send("Verification link has been sent to your email");
                     return;
@@ -179,11 +178,11 @@ UserRouter.post(
                         from: "manishmulchandani01@hotmail.com",
                         subject: "Reset password",
                         html:
-                            "<h3>Hi " +
+                            `<h3>Hi " +
                             user.name +
-                            ',</h3><p>Click <a href="http://localhost:3000/new-password/' +
+                            ',</h3><p>Click <a href="${baseurl}/new-password/' +
                             passwordToken +
-                            '">here</a> to reset your password (This link will expire in 30 minutes)</p>',
+                            '">here</a> to reset your password (This link will expire in 30 minutes)</p>`,
                     });
                 }
                 res.send("Reset password link has been sent to your email");
