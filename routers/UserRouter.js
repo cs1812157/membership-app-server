@@ -117,13 +117,14 @@ UserRouter.put(
     isLogged,
     expressAsyncHandler(async (req, res) => {
         const user = await User.findById(req.user._id);
+        const currentPassword = user.password;
         if (user) {
             user.name = req.body.name || user.name;
             user.email = req.body.email || user.email;
             if (req.body.password) {
                 user.password = bcrypt.hashSync(req.body.password, 8);
             }
-            if (bcrypt.compareSync(req.body.currentPassword, user.password)) {
+            if (bcrypt.compareSync(req.body.currentPassword, currentPassword)) {
                 const updatedUser = await user.save();
                 if (updatedUser) {
                     res.send({
