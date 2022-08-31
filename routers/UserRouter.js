@@ -85,13 +85,8 @@ UserRouter.post(
                         transporter.sendMail({
                             to: user.email,
                             from: "manishmulchandani01@hotmail.com",
-                            subject:
-                                "Registration successfull | Account verification",
-                            html: `<h3>Hi " +
-                                user.name +
-                                ',</h3><p>Your account has been successfully registered in our database.<br>Click <a href="${baseurl}/verify-account/' +
-                                registerToken +
-                                '">here</a> to verify your account (This link will expire in 30 minutes)</p>`,
+                            subject: "Account verification",
+                            html: `<h3>Hi, ${newUser.name}</h3><br><p>Click <a href="${baseurl}/verify-account/${registerToken}">here</a> to reset your password</p><br><p>This link will expire in 30 minutes.</p>`,
                         });
                         res.send(
                             "Verification link has been sent to your email"
@@ -105,13 +100,8 @@ UserRouter.post(
                     transporter.sendMail({
                         to: newUser.email,
                         from: "manishmulchandani01@hotmail.com",
-                        subject:
-                            "Registration successfull | Account verification",
-                        html: `<h3>Hi " +
-                            newUser.name +
-                            ',</h3><p>Your account has been successfully registered in our database.<br>Click <a href="${baseurl}/verify-account/' +
-                            registerToken +
-                            '">here</a> to verify your account (This link will expire in 30 minutes)</p>`,
+                        subject: "Account verification",
+                        html: `<h3>Hi, ${newUser.name}</h3><br><p>Click <a href="${baseurl}/verify-account/${registerToken}">here</a> to reset your password</p><br><p>This link will expire in 30 minutes.</p>`,
                     });
                     res.send("Verification link has been sent to your email");
                     return;
@@ -177,12 +167,7 @@ UserRouter.post(
                         to: user.email,
                         from: "manishmulchandani01@hotmail.com",
                         subject: "Reset password",
-                        html:
-                            `<h3>Hi " +
-                            user.name +
-                            ',</h3><p>Click <a href="${baseurl}/new-password/' +
-                            passwordToken +
-                            '">here</a> to reset your password (This link will expire in 30 minutes)</p>`,
+                        html: `<h3>Hi, ${user.name}</h3><br><p>Click <a href="${baseurl}/new-password/${passwordToken}">here</a> to reset your password</p><br><p>This link will expire in 30 minutes.</p>`,
                     });
                 }
                 res.send("Reset password link has been sent to your email");
