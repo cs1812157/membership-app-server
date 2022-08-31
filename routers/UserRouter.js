@@ -4,52 +4,43 @@ import expressAsyncHandler from "express-async-handler";
 import bcrypt from "bcryptjs";
 import { generateToken, isLogged } from "../utils.js";
 import nodemailer from "nodemailer";
-// import sendgridTransport from "nodemailer-sendgrid-transport";
 import crypto from "crypto";
 
 const UserRouter = express.Router();
 
-// const transporter = nodemailer.createTransport(
-//     sendgridTransport({
-//         auth: {
-//             api_key: process.env.SEND_GRID_API_KEY,
-//         },
-//     })
-// );
-
 const transporter = nodemailer.createTransport({
     service: "hotmail",
     auth: {
-        user: "funlandprizes@hotmail.com",
-        pass: "nivsuvjmcchpkdau"
-    }
+        user: "manishmulchandani01@hotmail.com",
+        pass: "sevfaiqurbmpnenq",
+    },
 });
 
-UserRouter.get(
-    "/",
-    expressAsyncHandler(async (req, res) => {
-        const users = await User.find({});
-        res.send(users);
-    })
-);
+// UserRouter.get(
+//     "/",
+//     expressAsyncHandler(async (req, res) => {
+//         const users = await User.find({});
+//         res.send(users);
+//     })
+// );
 
-UserRouter.get(
-    "/:id",
-    expressAsyncHandler(async (req, res) => {
-        const user = await User.findById(req.params.id);
-        if (user) {
-            res.send(user);
-        } else {
-            res.status(404).send({ message: "Could not find this user" });
-        }
-    })
-);
+// UserRouter.get(
+//     "/:id",
+//     expressAsyncHandler(async (req, res) => {
+//         const user = await User.findById(req.params.id);
+//         if (user) {
+//             res.send(user);
+//         } else {
+//             res.status(404).send({ message: "Could not find this user" });
+//         }
+//     })
+// );
 
 UserRouter.post(
     "/login",
     expressAsyncHandler(async (req, res) => {
         const user = await User.findOne({ email: req.body.email });
-        if (user) {
+        if (user && user.verified === true) {
             if (bcrypt.compareSync(req.body.password, user.password)) {
                 res.send({
                     _id: user._id,
@@ -68,24 +59,66 @@ UserRouter.post(
 UserRouter.post(
     "/register",
     expressAsyncHandler(async (req, res) => {
-        const user = new User({
-            name: req.body.name,
-            email: req.body.email,
-            password: bcrypt.hashSync(req.body.password, 8),
-        });
-        const createdUser = await user.save();
-        res.send({
-            _id: createdUser._id,
-            name: createdUser.name,
-            email: createdUser.email,
-            admin: createdUser.admin,
-            token: generateToken(createdUser),
-        });
-        transporter.sendMail({
-            to: createdUser.email,
-            from: "funlandprizes@hotmail.com",
-            subject: "Registration Success",
-            html: "<h1>Welcome to Membership App</h1>",
+        crypto.randomBytes(32, async (error, buffer) => {
+            if (error) {
+                console.log("Crypto error", error);
+            }
+            const registerToken = buffer.toString("hex");
+            const user = await User.findOne({ email: req.body.email });
+            const newUser = new User({
+                name: req.body.name,
+                email: req.body.email,
+                password: bcrypt.hashSync(req.body.password, 8),
+                registerToken: registerToken,
+                registerExpireToken: Date.now() + 1800000,
+            });
+            if (user) {
+                if (user.verified === false) {
+                    user.name = newUser.name;
+                    user.email = newUser.email;
+                    user.password = newUser.password;
+                    user.registerToken = newUser.registerToken;
+                    user.registerExpireToken = newUser.registerExpireToken;
+                    const updatedUser = await user.save();
+                    if (updatedUser) {
+                        transporter.sendMail({
+                            to: user.email,
+                            from: "manishmulchandani01@hotmail.com",
+                            subject:
+                                "Registration successfull | Account verification",
+                            html:
+                                "<h3>Hi " +
+                                user.name +
+                                ',</h3><p>Your account has been successfully registered in our database.<br>Click <a href="http://localhost:3000/verify-account/' +
+                                registerToken +
+                                '">here</a> to verify your account (This link will expire in 30 minutes)</p>',
+                        });
+                        res.send(
+                            "Verification link has been sent to your email"
+                        );
+                        return;
+                    }
+                }
+            } else if (!user) {
+                const createdUser = await newUser.save();
+                if (createdUser) {
+                    transporter.sendMail({
+                        to: newUser.email,
+                        from: "manishmulchandani01@hotmail.com",
+                        subject:
+                            "Registration successfull | Account verification",
+                        html:
+                            "<h3>Hi " +
+                            newUser.name +
+                            ',</h3><p>Your account has been successfully registered in our database.<br>Click <a href="http://localhost:3000/verify-account/' +
+                            registerToken +
+                            '">here</a> to verify your account (This link will expire in 30 minutes)</p>',
+                    });
+                    res.send("Verification link has been sent to your email");
+                    return;
+                }
+            }
+            res.status(400).send({ message: "Account already exists" });
         });
     })
 );
@@ -101,15 +134,26 @@ UserRouter.put(
             if (req.body.password) {
                 user.password = bcrypt.hashSync(req.body.password, 8);
             }
-            const updatedUser = await user.save();
-            res.send({
-                _id: updatedUser._id,
-                name: updatedUser.name,
-                email: updatedUser.email,
-                isSeller: updatedUser.isSeller,
-                adminLevel: updatedUser.adminLevel,
-                token: generateToken(updatedUser),
-            });
+            if (bcrypt.compareSync(req.body.currentPassword, user.password)) {
+                const updatedUser = await user.save();
+                if (updatedUser) {
+                    res.send({
+                        _id: updatedUser._id,
+                        name: updatedUser.name,
+                        email: updatedUser.email,
+                        isSeller: updatedUser.isSeller,
+                        adminLevel: updatedUser.adminLevel,
+                        token: generateToken(updatedUser),
+                    });
+                    return;
+                } else {
+                    res.status(500).send({ message: "An error occurred" });
+                    return;
+                }
+            } else {
+                res.status(400).send({ message: "Invalid current password" });
+                return;
+            }
         } else {
             res.status(404).send({ message: "Could not find user" });
         }
@@ -123,23 +167,23 @@ UserRouter.post(
             if (error) {
                 console.log("Crypto error", error);
             }
-            const token = buffer.toString("hex");
+            const passwordToken = buffer.toString("hex");
             const user = await User.findOne({ email: req.body.email });
-            if (user) {
-                user.resetToken = token;
-                user.expireToken = Date.now() + 1800000;
+            if (user && user.verified === true) {
+                user.passwordToken = passwordToken;
+                user.passwordExpireToken = Date.now() + 1800000;
                 const updatedUser = await user.save();
                 if (updatedUser) {
                     transporter.sendMail({
                         to: user.email,
-                        from: "funlandprizes@hotmail.com",
+                        from: "manishmulchandani01@hotmail.com",
                         subject: "Reset password",
                         html:
                             "<h3>Hi " +
                             user.name +
                             ',</h3><p>Click <a href="http://localhost:3000/new-password/' +
-                            token +
-                            '">here</a> to reset your password</p>',
+                            passwordToken +
+                            '">here</a> to reset your password (This link will expire in 30 minutes)</p>',
                     });
                 }
                 res.send("Reset password link has been sent to your email");
@@ -154,15 +198,34 @@ UserRouter.post(
     "/new-password",
     expressAsyncHandler(async (req, res) => {
         const user = await User.findOne({
-            token: req.body.token,
-            expireToken: { $gt: Date.now() },
+            passwordToken: req.body.passwordToken,
+            passwordExpireToken: { $gt: Date.now() },
         });
         if (user) {
             user.password = bcrypt.hashSync(req.body.password, 8);
-            user.resetToken = undefined;
-            user.expireToken = undefined;
+            user.passwordToken = undefined;
+            user.passwordExpireToken = undefined;
             await user.save();
             res.send("Password change success");
+        } else {
+            res.status(404).send({ message: "Could not find token" });
+        }
+    })
+);
+
+UserRouter.post(
+    "/verify-account",
+    expressAsyncHandler(async (req, res) => {
+        const user = await User.findOne({
+            registerToken: req.body.registerToken,
+            registerExpireToken: { $gt: Date.now() },
+        });
+        if (user) {
+            user.verified = true;
+            user.registerToken = undefined;
+            user.registerExpireToken = undefined;
+            await user.save();
+            res.send("Account verified");
         } else {
             res.status(404).send({ message: "Could not find token" });
         }

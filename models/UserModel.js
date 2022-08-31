@@ -5,8 +5,11 @@ const userSchema = new mongoose.Schema(
         name: { type: String, required: true, maxlength: 32 },
         email: { type: String, required: true, unique: true, maxlength: 70 },
         password: { type: String, required: true },
-        resetToken: { type: String },
-        expireToken: { type: Date },
+        passwordToken: { type: String },
+        passwordExpireToken: { type: Date },
+        registerToken: { type: String },
+        registerExpireToken: { type: Date },
+        verified: { type: Boolean, default: false, required: true },
         admin: { type: Boolean, default: false, required: true },
     },
     {

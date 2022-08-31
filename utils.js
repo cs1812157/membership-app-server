@@ -23,7 +23,7 @@ export const isLogged = (req, res, next) => {
             if (err) {
                 res.status(401).send({ message: "Invalid token" });
             } else {
-                req.user = decode; // Get jwt.sign details
+                req.user = decode;
                 next();
             }
         });
