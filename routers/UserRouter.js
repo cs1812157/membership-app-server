@@ -12,8 +12,9 @@ const UserRouter = express.Router();
 const transporter = nodemailer.createTransport({
     service: "hotmail",
     auth: {
-        user: "manishmulchandani01@hotmail.com",
-        pass: "sevfaiqurbmpnenq",
+        user: "funlandprizes@hotmail.com",
+        pass: "jlqczqqcxkzcijqk",
+        // pass: "sevfaiqurbmpnenq",
     },
 });
 
@@ -84,7 +85,7 @@ UserRouter.post(
                     if (updatedUser) {
                         transporter.sendMail({
                             to: user.email,
-                            from: "manishmulchandani01@hotmail.com",
+                            from: "funlandprizes@hotmail.com",
                             subject: "Account verification",
                             html: `<h3>Hi, ${newUser.name}</h3><br><p>Click <a href="${baseurl}/verify-account/${registerToken}">here</a> to reset your password</p><br><p>This link will expire in 30 minutes.</p>`,
                         });
@@ -99,7 +100,7 @@ UserRouter.post(
                 if (createdUser) {
                     transporter.sendMail({
                         to: newUser.email,
-                        from: "manishmulchandani01@hotmail.com",
+                        from: "funlandprizes@hotmail.com",
                         subject: "Account verification",
                         html: `<h3>Hi, ${newUser.name}</h3><br><p>Click <a href="${baseurl}/verify-account/${registerToken}">here</a> to reset your password</p><br><p>This link will expire in 30 minutes.</p>`,
                     });
@@ -166,7 +167,7 @@ UserRouter.post(
                 if (updatedUser) {
                     transporter.sendMail({
                         to: user.email,
-                        from: "manishmulchandani01@hotmail.com",
+                        from: "funlandprizes@hotmail.com",
                         subject: "Reset password",
                         html: `<h3>Hi, ${user.name}</h3><br><p>Click <a href="${baseurl}/new-password/${passwordToken}">here</a> to reset your password</p><br><p>This link will expire in 30 minutes.</p>`,
                     });
