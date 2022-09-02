@@ -17,7 +17,7 @@ const upload = multer({ storage });
 
 UploadRouter.post(
     "/profile-picture",
-    // isLogged,
+    isLogged,
     upload.single("image"),
     (req, res) => {
         res.send(`/${req.file.path}`);
