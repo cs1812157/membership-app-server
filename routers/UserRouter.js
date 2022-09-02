@@ -13,13 +13,13 @@ const transporter = nodemailer.createTransport({
     service: "hotmail",
     auth: {
         user: "funlandprizes@hotmail.com",
-        pass: "jlqczqqcxkzcijqk",
-        // pass: "sevfaiqurbmpnenq",
+        pass: "jlqczqqcxkzcijqk", // funland hotmail
+        // pass: "sevfaiqurbmpnenq", // my hotmail
     },
 });
 
 UserRouter.get(
-    "/",
+    "/all",
     expressAsyncHandler(async (req, res) => {
         const users = await User.find({});
         res.send(users);
@@ -87,7 +87,7 @@ UserRouter.post(
                             to: user.email,
                             from: "funlandprizes@hotmail.com",
                             subject: "Account verification",
-                            html: `<h3>Hi, ${newUser.name}</h3><br><p>Click <a href="${baseurl}/verify-account/${registerToken}">here</a> to reset your password</p><br><p>This link will expire in 30 minutes.</p>`,
+                            html: `<h3>Hi, ${newUser.name}</h3><br><p>Click <a href="${baseurl}/verify-account/${registerToken}">here</a> to verify your account</p><br><p>This link will expire in 30 minutes.</p>`,
                         });
                         res.send(
                             "Verification link has been sent to your email"
@@ -102,7 +102,7 @@ UserRouter.post(
                         to: newUser.email,
                         from: "funlandprizes@hotmail.com",
                         subject: "Account verification",
-                        html: `<h3>Hi, ${newUser.name}</h3><br><p>Click <a href="${baseurl}/verify-account/${registerToken}">here</a> to reset your password</p><br><p>This link will expire in 30 minutes.</p>`,
+                        html: `<h3>Hi, ${newUser.name}</h3><br><p>Click <a href="${baseurl}/verify-account/${registerToken}">here</a> to verify your account</p><br><p>This link will expire in 30 minutes.</p>`,
                     });
                     res.send("Verification link has been sent to your email");
                     return;
@@ -120,6 +120,7 @@ UserRouter.put(
         const user = await User.findById(req.user._id);
         const currentPassword = user.password;
         if (user) {
+            user.image = req.body.image || user.image;
             user.name = req.body.name || user.name;
             user.email = req.body.email || user.email;
             if (req.body.newPassword) {
@@ -130,10 +131,10 @@ UserRouter.put(
                 if (updatedUser) {
                     res.send({
                         _id: updatedUser._id,
+                        image: updatedUser.image,
                         name: updatedUser.name,
                         email: updatedUser.email,
-                        isSeller: updatedUser.isSeller,
-                        adminLevel: updatedUser.adminLevel,
+                        admin: updatedUser.admin,
                         token: generateToken(updatedUser),
                     });
                     return;
