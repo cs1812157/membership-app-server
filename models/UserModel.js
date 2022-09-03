@@ -6,6 +6,8 @@ const userSchema = new mongoose.Schema(
         name: { type: String, required: true, maxlength: 32 },
         email: { type: String, required: true, unique: true, maxlength: 70 },
         password: { type: String, required: true },
+        loginToken: { type: String },
+        loginExpireToken: { type: Date },
         passwordToken: { type: String },
         passwordExpireToken: { type: Date },
         registerToken: { type: String },

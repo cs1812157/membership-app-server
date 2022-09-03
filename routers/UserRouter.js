@@ -44,17 +44,24 @@ UserRouter.post(
     expressAsyncHandler(async (req, res) => {
         const user = await User.findOne({ email: req.body.email });
         if (user && user.verified === true) {
+            const generatedToken = generateToken(user);
             if (bcrypt.compareSync(req.body.password, user.password)) {
-                res.send({
-                    _id: user._id,
-                    image: user.image,
-                    name: user.name,
-                    email: user.email,
-                    providedPassword: req.body.password,
-                    admin: user.admin,
-                    token: generateToken(user),
-                });
-                return;
+                user.loginToken = generatedToken;
+                user.loginExpireToken = Date.now() + 10 * 24 * 60 * 60 * 1000;
+                const updatedUser = await user.save();
+                if (updatedUser) {
+                    res.send({
+                        _id: user._id,
+                        image: user.image,
+                        name: user.name,
+                        email: user.email,
+                        admin: user.admin,
+                        token: user.loginToken,
+                    });
+                    return;
+                } else {
+                    res.status(400).send({ message: "An error has occurred" });
+                }
             }
         }
         res.status(401).send({ message: "Invalid login credentials" });
@@ -62,46 +69,21 @@ UserRouter.post(
 );
 
 UserRouter.post(
-    "/updated-login",
+    "/verify-login",
+    isLogged,
     expressAsyncHandler(async (req, res) => {
         const user = await User.findOne({ email: req.body.email });
         if (user && user.verified === true) {
-            if (bcrypt.compareSync(req.body.providedPassword, user.password)) {
-                res.send({
-                    _id: user._id,
-                    image: user.image,
-                    name: user.name,
-                    email: user.email,
-                    providedPassword: req.body.providedPassword,
-                    admin: user.admin,
-                    token: generateToken(user),
-                });
-                return;
-            }
+            res.send({
+                _id: user._id,
+                loginToken: user.loginToken,
+                loginExpireToken: user.loginExpireToken,
+            });
+            return;
         }
-        res.status(401).send({ message: "Invalid login credentials" });
+        res.status(401).send({ message: "Could not find the user" });
     })
 );
-
-// UserRouter.post(
-//     "/updated-login",
-//     expressAsyncHandler(async (req, res) => {
-//         const user = await User.findOne({ email: req.body.email });
-//         if (user && user.verified === true) {
-//             res.send({
-//                 _id: user._id,
-//                 image: user.image,
-//                 name: user.name,
-//                 email: user.email,
-//                 providedPassword: req.body.password,
-//                 admin: user.admin,
-//                 token: generateToken(user),
-//             });
-//             return;
-//         }
-//         res.status(401).send({ message: "Invalid login credentials" });
-//     })
-// );
 
 UserRouter.post(
     "/register",
@@ -160,13 +142,16 @@ UserRouter.post(
 
 UserRouter.put(
     "/update-account",
-    isLogged,
+    // isLogged,
     expressAsyncHandler(async (req, res) => {
         const user = await User.findById(req.body.userID);
-        const currentPassword = user.password;
         if (user) {
+            const currentPassword = user.password;
             if (req.body.image) {
                 user.image = req.body.image;
+                const generatedToken = generateToken(user);
+                user.loginToken = generatedToken;
+                user.loginExpireToken = Date.now() + 10 * 24 * 60 * 60 * 1000;
                 const updatedUser = await user.save();
                 res.send({
                     _id: updatedUser._id,
@@ -174,7 +159,7 @@ UserRouter.put(
                     name: updatedUser.name,
                     email: updatedUser.email,
                     admin: updatedUser.admin,
-                    token: generateToken(updatedUser),
+                    token: updatedUser.loginToken,
                 });
                 return;
             } else {
@@ -189,6 +174,10 @@ UserRouter.put(
                         currentPassword
                     )
                 ) {
+                    const generatedToken = generateToken(user);
+                    user.loginToken = generatedToken;
+                    user.loginExpireToken =
+                        Date.now() + 10 * 24 * 60 * 60 * 1000;
                     const updatedUser = await user.save();
                     res.send({
                         _id: updatedUser._id,
@@ -196,7 +185,7 @@ UserRouter.put(
                         name: updatedUser.name,
                         email: updatedUser.email,
                         admin: updatedUser.admin,
-                        token: generateToken(updatedUser),
+                        token: updatedUser.loginToken,
                     });
                 } else {
                     res.status(400).send({
