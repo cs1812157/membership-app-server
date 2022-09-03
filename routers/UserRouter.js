@@ -124,10 +124,8 @@ UserRouter.put(
             user.image = req.body.image || user.image;
             user.name = req.body.name || user.name;
             user.email = req.body.email || user.email;
-            if (req.body.newPassword) {
-                user.password = bcrypt.hashSync(req.body.newPassword, 8);
-            }
-            if (bcrypt.compareSync(req.body.currentPassword, currentPassword)) {
+            if (req.body.image) {
+                user.image = req.body.image;
                 const updatedUser = await user.save();
                 if (updatedUser) {
                     res.send({
@@ -144,8 +142,36 @@ UserRouter.put(
                     return;
                 }
             } else {
-                res.status(400).send({ message: "Invalid current password" });
-                return;
+                if (req.body.newPassword) {
+                    user.password = bcrypt.hashSync(req.body.newPassword, 8);
+                }
+                if (
+                    bcrypt.compareSync(
+                        req.body.currentPassword,
+                        currentPassword
+                    )
+                ) {
+                    const updatedUser = await user.save();
+                    if (updatedUser) {
+                        res.send({
+                            _id: updatedUser._id,
+                            image: updatedUser.image,
+                            name: updatedUser.name,
+                            email: updatedUser.email,
+                            admin: updatedUser.admin,
+                            token: generateToken(updatedUser),
+                        });
+                        return;
+                    } else {
+                        res.status(500).send({ message: "An error occurred" });
+                        return;
+                    }
+                } else {
+                    res.status(400).send({
+                        message: "Invalid current password",
+                    });
+                    return;
+                }
             }
         } else {
             res.status(404).send({ message: "Could not find user" });
