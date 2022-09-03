@@ -15,7 +15,7 @@ const transporter = nodemailer.createTransport({
         // user: "funlandprizes@hotmail.com",
         user: "manishmulchandani01@hotmail.com",
         // pass: "jlqczqqcxkzcijqk", // funland hotmail
-        pass: "sevfaiqurbmpnenq", // my hotmail
+        pass: "jndiwxoabjosvvwk", // my hotmail
     },
 });
 
