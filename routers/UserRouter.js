@@ -60,6 +60,25 @@ UserRouter.post(
 );
 
 UserRouter.post(
+    "/updated-login",
+    expressAsyncHandler(async (req, res) => {
+        const user = await User.findOne({ email: req.body.email });
+        if (user && user.verified === true) {
+            res.send({
+                _id: user._id,
+                image: user.image,
+                name: user.name,
+                email: user.email,
+                admin: user.admin,
+                token: generateToken(user),
+            });
+            return;
+        }
+        res.status(401).send({ message: "Invalid login credentials" });
+    })
+);
+
+UserRouter.post(
     "/register",
     expressAsyncHandler(async (req, res) => {
         crypto.randomBytes(32, async (error, buffer) => {
