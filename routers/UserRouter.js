@@ -12,9 +12,10 @@ const UserRouter = express.Router();
 const transporter = nodemailer.createTransport({
     service: "hotmail",
     auth: {
-        user: "funlandprizes@hotmail.com",
-        pass: "jlqczqqcxkzcijqk", // funland hotmail
-        // pass: "sevfaiqurbmpnenq", // my hotmail
+        // user: "funlandprizes@hotmail.com",
+        user: "manishmulchandani01@hotmail.com",
+        // pass: "jlqczqqcxkzcijqk", // funland hotmail
+        pass: "sevfaiqurbmpnenq", // my hotmail
     },
 });
 
