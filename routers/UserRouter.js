@@ -50,6 +50,7 @@ UserRouter.post(
                     image: user.image,
                     name: user.name,
                     email: user.email,
+                    providedPassword: req.body.password,
                     admin: user.admin,
                     token: generateToken(user),
                 });
@@ -65,19 +66,42 @@ UserRouter.post(
     expressAsyncHandler(async (req, res) => {
         const user = await User.findOne({ email: req.body.email });
         if (user && user.verified === true) {
-            res.send({
-                _id: user._id,
-                image: user.image,
-                name: user.name,
-                email: user.email,
-                admin: user.admin,
-                token: generateToken(user),
-            });
-            return;
+            if (bcrypt.compareSync(req.body.providedPassword, user.password)) {
+                res.send({
+                    _id: user._id,
+                    image: user.image,
+                    name: user.name,
+                    email: user.email,
+                    providedPassword: req.body.providedPassword,
+                    admin: user.admin,
+                    token: generateToken(user),
+                });
+                return;
+            }
         }
         res.status(401).send({ message: "Invalid login credentials" });
     })
 );
+
+// UserRouter.post(
+//     "/updated-login",
+//     expressAsyncHandler(async (req, res) => {
+//         const user = await User.findOne({ email: req.body.email });
+//         if (user && user.verified === true) {
+//             res.send({
+//                 _id: user._id,
+//                 image: user.image,
+//                 name: user.name,
+//                 email: user.email,
+//                 providedPassword: req.body.password,
+//                 admin: user.admin,
+//                 token: generateToken(user),
+//             });
+//             return;
+//         }
+//         res.status(401).send({ message: "Invalid login credentials" });
+//     })
+// );
 
 UserRouter.post(
     "/register",
@@ -138,30 +162,24 @@ UserRouter.put(
     "/update-account",
     isLogged,
     expressAsyncHandler(async (req, res) => {
-        const user = await User.findById(req.user._id);
+        const user = await User.findById(req.body.userID);
         const currentPassword = user.password;
         if (user) {
-            user.image = req.body.image || user.image;
-            user.name = req.body.name || user.name;
-            user.email = req.body.email || user.email;
             if (req.body.image) {
                 user.image = req.body.image;
                 const updatedUser = await user.save();
-                if (updatedUser) {
-                    res.send({
-                        _id: updatedUser._id,
-                        image: updatedUser.image,
-                        name: updatedUser.name,
-                        email: updatedUser.email,
-                        admin: updatedUser.admin,
-                        token: generateToken(updatedUser),
-                    });
-                    return;
-                } else {
-                    res.status(500).send({ message: "An error occurred" });
-                    return;
-                }
+                res.send({
+                    _id: updatedUser._id,
+                    image: updatedUser.image,
+                    name: updatedUser.name,
+                    email: updatedUser.email,
+                    admin: updatedUser.admin,
+                    token: generateToken(updatedUser),
+                });
+                return;
             } else {
+                user.name = req.body.name || user.name;
+                user.email = req.body.email || user.email;
                 if (req.body.newPassword) {
                     user.password = bcrypt.hashSync(req.body.newPassword, 8);
                 }
@@ -172,20 +190,14 @@ UserRouter.put(
                     )
                 ) {
                     const updatedUser = await user.save();
-                    if (updatedUser) {
-                        res.send({
-                            _id: updatedUser._id,
-                            image: updatedUser.image,
-                            name: updatedUser.name,
-                            email: updatedUser.email,
-                            admin: updatedUser.admin,
-                            token: generateToken(updatedUser),
-                        });
-                        return;
-                    } else {
-                        res.status(500).send({ message: "An error occurred" });
-                        return;
-                    }
+                    res.send({
+                        _id: updatedUser._id,
+                        image: updatedUser.image,
+                        name: updatedUser.name,
+                        email: updatedUser.email,
+                        admin: updatedUser.admin,
+                        token: generateToken(updatedUser),
+                    });
                 } else {
                     res.status(400).send({
                         message: "Invalid current password",
